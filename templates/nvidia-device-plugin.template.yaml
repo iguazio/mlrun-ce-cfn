@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Deploy Nvidia device plugin
+Parameters:
+  EKSClusterName:
+    Type: String
+Resources:
+  NvidiaDevicePlugin:
+    Type: "AWSQS::Kubernetes::Resource"
+    Properties:
+      ClusterName: !Ref EKSClusterName
+      Namespace: kube-system
+      Url: https://mlrun-cfn-marketplace.s3.us-east-2.amazonaws.com/iguazio-mlrun-kit/templates/nvidia-device-plugin.yml
