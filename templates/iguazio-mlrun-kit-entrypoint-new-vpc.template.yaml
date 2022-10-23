@@ -88,7 +88,7 @@ Metadata:
           - KeyPairName
           - ProvisionBastionHost
       - Label:
-          default: Iguazio MLRun configuration
+          default: MLRun configuration
         Parameters:
           - ClusterDomain
           - REDISUrl
