@@ -261,4 +261,4 @@ Outputs:
   Nuclio:
     Value: !GetAtt MLRunKit.Outputs.Nuclio
   Grafana:
-    Value: !GetAtt MLRunKit.Outputs.Nuclio
+    Value: !GetAtt MLRunKit.Outputs.Grafana
