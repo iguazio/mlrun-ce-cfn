@@ -233,7 +233,7 @@ Resources:
       Name: mlrun-ce
       Chart: mlrun-ce
       Namespace: mlrun
-      TimeOut: 14
+      TimeOut: 20
       Version: !Ref MLrunCeVersion
       Repository: https://mlrun.github.io/ce
       ValueYaml: !Sub |
