@@ -85,8 +85,9 @@ Resources:
     Properties:
       ClusterID: !Ref ClusterName
       Namespace: efs-provisioner
-      Chart: stable/efs-provisioner
-      Repository: 'https://charts.helm.sh/stable'
+      Chart: isotoma/efs-provisioner
+      Repository: 'https://isotoma.github.io/charts'
+      Version: 0.14.0
       Values:
         efsProvisioner.efsFileSystemId: !Ref EFSFileSystem
         efsProvisioner.awsRegion: !Ref 'AWS::Region'
