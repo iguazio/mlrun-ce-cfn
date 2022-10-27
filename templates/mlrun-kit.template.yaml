@@ -43,7 +43,19 @@ Resources:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
     Properties:
-      BucketName: !Sub mlrun-${EKSClusterName}
+      BucketName:
+        Fn::Join:
+          - '-'
+          - - !Ref EKSClusterName
+            - Fn::Select:
+                - 4
+                - Fn::Split:
+                    - '-'
+                    - Fn::Select:
+                        - 2
+                        - Fn::Split:
+                            - /
+                            - Ref: AWS::StackId
       AccessControl: BucketOwnerFullControl
       PublicAccessBlockConfiguration:
         BlockPublicAcls: yes
@@ -535,3 +547,6 @@ Outputs:
   KubeConfig:
     Description: Run this command in your terminal to get access to your EKS cluster
     Value: !Sub aws eks update-kubeconfig --name=${EKSClusterName}
+  S3Bucket:
+    Description: This bucket has to be deleted manually after deleting the stack
+    Value: !Ref MlrunBucket

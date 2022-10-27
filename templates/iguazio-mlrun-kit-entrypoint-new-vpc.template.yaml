@@ -183,7 +183,8 @@ Mappings:
     ALBIngressController: { Value: Enabled }
     NodeGroupType: { Value: Managed }
     KubernetesVersion: { Value: 1.22 }
-    QSS3BucketName: { Value: mlrun-kit-alexp }
+    QSS3BucketName: { Value: mlrun-ce-cfn }
+
 Resources:
   AdvancedConfigDefaultsStack:
     Type: AWS::CloudFormation::Stack
@@ -262,3 +263,6 @@ Outputs:
     Value: !GetAtt MLRunKit.Outputs.Nuclio
   Grafana:
     Value: !GetAtt MLRunKit.Outputs.Grafana
+  S3Bucket:
+    Description: This bucket has to be deleted manually after deleting the stack
+    Value: !GetAtt MLRunKit.Outputs.S3Bucket
