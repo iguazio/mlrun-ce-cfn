@@ -285,7 +285,7 @@ Resources:
               - name: MLRUN_HTTPDB__REAL_PATH
                 value: s3://
               - name: MLRUN_ARTIFACT_PATH
-                value: s3://mlrun-${EKSClusterName}/
+                value: s3://${MlrunBucket}/
               - name: MLRUN_SPARK_APP_IMAGE
                 value: gcr.io/iguazio/spark-app
               - name: MLRUN_SPARK_APP_IMAGE_TAG
@@ -307,7 +307,7 @@ Resources:
         jupyterNotebook:
           awsInstall: true
           serviceAccount: mlrun-jobs-sa
-          mlrunUIURL:  https://mlrun.${EKSClusterName}.${ClusterDomain}/mlrun
+          mlrunUIURL:  https://mlrun.${EKSClusterName}.${ClusterDomain}
           persistence:
             enabled: true
             annotations: ~
@@ -324,7 +324,7 @@ Resources:
               - name: MLRUN_FUNCTION__SPEC__SERVICE_ACCOUNT__DEFAULT
                 value: mlrun-jobs-sa
               - name: MLRUN_ARTIFACT_PATH
-                value: s3://mlrun-${EKSClusterName}/
+                value: s3://${MlrunBucket}/
               - name: MLRUN_CE
                 value: "true"
 
