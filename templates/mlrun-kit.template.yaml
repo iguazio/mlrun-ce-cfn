@@ -412,7 +412,7 @@ Resources:
 
         kube-prometheus-stack:
           fullnameOverride: monitoring
-          enabled: true
+          enabled: false
           alertmanager:
             enabled: false
           grafana:
@@ -438,6 +438,46 @@ Resources:
             fullnameOverride: state-metrics
           prometheus-node-exporter:
             fullnameOverride: node-exporter
+
+  KubePrometheusStack:
+    Type: "AWSQS::Kubernetes::Helm"
+    DependsOn:
+      - MLRunHelmChart
+    Properties:
+      ClusterID: !Ref EKSClusterName
+      Name: monitoring
+      Chart: kube-prometheus-stack
+      Namespace: mlrun
+      TimeOut: 30
+      Repository: https://prometheus-community.github.io/helm-charts
+      ValueYaml: !Sub |
+        fullnameOverride: monitoring
+        enabled: true
+        alertmanager:
+          enabled: false
+        grafana:
+          persistence:
+            type: pvc
+            enabled: true
+            size: 10Gi
+            storageClassName: aws-efs
+          grafana.ini:
+            auth.anonymous:
+              enabled: true
+              org_role: Editor
+            security:
+              disable_initial_admin_creation: true
+          fullnameOverride: grafana
+          enabled: true
+          service:
+            type: NodePort
+            nodePort: 30110
+        prometheus:
+          enabled: true
+        kube-state-metrics:
+          fullnameOverride: state-metrics
+        prometheus-node-exporter:
+          fullnameOverride: node-exporter
 
   MLRunIngress:
     Type: "AWSQS::Kubernetes::Resource"
