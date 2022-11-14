@@ -129,7 +129,7 @@ Parameters:
     Default: "0.0.0.0/0"
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
-    Description: CIDR IP range that is permitted to access the instances. We recommend
+    Description: CIDR IP range that is permitted to access the instances and the ingress (external URL). We recommend
       that you set this value to a trusted IP range.
     Type: String
   AdditionalEKSAdminUserArn:
@@ -243,6 +243,7 @@ Resources:
         ClusterDomain: !Ref ClusterDomain
         MLrunCeVersion: !Ref MLrunCeVersion
         REDISUrl: !Ref REDISUrl
+        RemoteAccessCIDR: !Ref RemoteAccessCIDR
         OIDCProvider: !Join [ '', !Split [ 'https://', !GetAtt EKSNewVPC.Outputs.OIDCIssuerURL ] ]
 Outputs:
   BastionIP:
