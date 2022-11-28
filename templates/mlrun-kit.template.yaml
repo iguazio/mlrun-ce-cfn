@@ -269,7 +269,6 @@ Resources:
             containerBuilderKind: kaniko
             imageNamePrefixTemplate: "${EKSClusterName}-{{ .ProjectName }}-{{ .FunctionName }}-"
         mlrun:
-          awsInstall: true
           nuclio:
             uiURL:  "https://nuclio.${EKSClusterName}.${ClusterDomain}"
           storage: filesystem
@@ -279,6 +278,10 @@ Resources:
               enabled: true
               annotations: ~
               storageClass: aws-efs
+            envFrom:
+              - configMapRef:
+                  name: mlrun-override-env
+                  optional: true
             extraEnv:
               - name: MLRUN_DEFAULT_TENSORBOARD_LOGS_PATH
                 value: /home/jovyan/data/tensorboard/{{ `{{project}} `}}
