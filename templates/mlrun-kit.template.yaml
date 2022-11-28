@@ -269,6 +269,7 @@ Resources:
             containerBuilderKind: kaniko
             imageNamePrefixTemplate: "${EKSClusterName}-{{ .ProjectName }}-{{ .FunctionName }}-"
         mlrun:
+          awsInstall: true
           nuclio:
             uiURL:  "https://nuclio.${EKSClusterName}.${ClusterDomain}"
           storage: filesystem
@@ -279,6 +280,10 @@ Resources:
               annotations: ~
               storageClass: aws-efs
             extraEnv:
+              - name: MLRUN_DEFAULT_TENSORBOARD_LOGS_PATH
+                value: /home/jovyan/data/tensorboard/{{ `{{project}} `}}
+              - name: MLRUN_CE__MODE
+                value: lite
               - name: MLRUN_SPARK_OPERATOR_VERSION
                 value: spark-3
               - name: MLRUN_STORAGE__AUTO_MOUNT_TYPE
