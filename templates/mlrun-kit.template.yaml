@@ -136,6 +136,7 @@ Resources:
                   "${OIDCProvider}:aud": "sts.amazonaws.com",
                   "${OIDCProvider}:sub": [
                             "system:serviceaccount:mlrun:mlrun-jobs-sa",
+                            "system:serviceaccount:mlrun:mlrun-api-aws",
                             "system:serviceaccount:mlrun:ml-pipeline-ui",
                             "system:serviceaccount:mlrun:ml-pipeline",
                             "system:serviceaccount:mlrun:argo"
@@ -219,6 +220,83 @@ Resources:
           annotations:
             eks.amazonaws.com/role-arn: ${AWSAccessRole.Arn}
 
+  MLRunApiAwsSa:
+    Type: "AWSQS::Kubernetes::Resource"
+    DependsOn: MLRunNamespace
+    Properties:
+      ClusterName: !Ref EKSClusterName
+      Namespace: mlrun
+      Manifest: !Sub |
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: mlrun-api-aws
+          namespace: mlrun
+          annotations:
+            eks.amazonaws.com/role-arn: ${AWSAccessRole.Arn}
+
+  MLRunApiRole:
+    Type: "AWSQS::Kubernetes::Resource"
+    DependsOn: MLRunNamespace
+    Properties:
+      ClusterName: !Ref EKSClusterName
+      Namespace: mlrun
+      Manifest: !Sub |
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          labels:
+            app.kubernetes.io/component: api
+            app.kubernetes.io/instance: mlrun-ce
+          name: mlrun-api-role
+          namespace: mlrun
+        rules:
+          - apiGroups:
+              - ""
+            resources:
+              - pods
+              - pods/exec
+              - pods/log
+              - services
+              - secrets
+              - configmaps
+            verbs:
+              - '*'
+          - apiGroups:
+              - kubeflow.org
+            resources:
+              - mpijobs
+            verbs:
+              - '*'
+          - apiGroups:
+              - sparkoperator.k8s.io
+            resources:
+              - sparkapplications
+              - scheduledsparkapplications
+            verbs:
+              - '*'
+  MLRunApiRB:
+    Type: "AWSQS::Kubernetes::Resource"
+    DependsOn: MLRunNamespace
+    Properties:
+      ClusterName: !Ref EKSClusterName
+      Namespace: mlrun
+      Manifest: !Sub |
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          labels:
+          name: mlrun-api-aws-rb
+          namespace: mlrun
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: Role
+          name: mlrun-api-role
+        subjects:
+        - kind: ServiceAccount
+          name: mlrun-api-aws
+          namespace: mlrun
+
   SparkRB:
     Type: "AWSQS::Kubernetes::Resource"
     DependsOn: MLRunNamespace
@@ -269,6 +347,9 @@ Resources:
             containerBuilderKind: kaniko
             imageNamePrefixTemplate: "${EKSClusterName}-{{ .ProjectName }}-{{ .FunctionName }}-"
         mlrun:
+          serviceAccounts:
+            create: false
+            name: mlrun-api-aws
           nuclio:
             uiURL:  "https://nuclio.${EKSClusterName}.${ClusterDomain}"
           storage: filesystem
@@ -283,6 +364,8 @@ Resources:
                   name: mlrun-override-env
                   optional: true
             extraEnv:
+              - name: S3_NON_ANONYMOUS
+                value: "true"
               - name: MLRUN_DEFAULT_TENSORBOARD_LOGS_PATH
                 value: /home/jovyan/data/tensorboard/{{ `{{project}} `}}
               - name: MLRUN_CE__MODE
