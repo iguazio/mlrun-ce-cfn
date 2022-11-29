@@ -286,7 +286,7 @@ Resources:
         kind: RoleBinding
         metadata:
           labels:
-          name: spark-cfn
+          name: mlrun-api-aws-rb
           namespace: mlrun
         roleRef:
           apiGroup: rbac.authorization.k8s.io
