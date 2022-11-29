@@ -136,6 +136,7 @@ Resources:
                   "${OIDCProvider}:aud": "sts.amazonaws.com",
                   "${OIDCProvider}:sub": [
                             "system:serviceaccount:mlrun:mlrun-jobs-sa",
+                            "system:serviceaccount:mlrun:mlrun-api-aws",
                             "system:serviceaccount:mlrun:ml-pipeline-ui",
                             "system:serviceaccount:mlrun:ml-pipeline",
                             "system:serviceaccount:mlrun:argo"
