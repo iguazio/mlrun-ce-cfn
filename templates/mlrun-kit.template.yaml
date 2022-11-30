@@ -348,8 +348,9 @@ Resources:
             imageNamePrefixTemplate: "${EKSClusterName}-{{ .ProjectName }}-{{ .FunctionName }}-"
         mlrun:
           serviceAccounts:
-            create: false
-            name: mlrun-api-aws
+            api:
+              create: false
+              name: mlrun-api-aws
           nuclio:
             uiURL:  "https://nuclio.${EKSClusterName}.${ClusterDomain}"
           storage: filesystem
