@@ -169,6 +169,7 @@ Parameters:
     Type: String
     MinLength: 1
   MLrunCeVersion:
+    Description: MLRunCE Helm Chart version
     Type: String
     Default: "0.0.25"
   REDISUrl:
@@ -177,13 +178,13 @@ Parameters:
 
 Mappings:
   Config:
-    QSS3KeyPrefix: { Value: quickstart-amazon-eks/ }
+    QSS3KeyPrefix: { Value: '' }
     QSS3BucketRegion: { Value: us-east-2 }
     EKSPublicAccessEndpoint: { Value: Enabled }
     ALBIngressController: { Value: Enabled }
     NodeGroupType: { Value: Managed }
     KubernetesVersion: { Value: 1.22 }
-    QSS3BucketName: { Value: mlrun-ce-cfn }
+    QSS3BucketName: { Value: mlrun-kit-alexp }
 
 Resources:
   AdvancedConfigDefaultsStack:
