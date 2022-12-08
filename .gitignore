@@ -1,14 +1,33 @@
-/.idea
-/taskcat_outputs
-/venv
-/.venv
-.DS_Store
-/.taskcat
-/functions/packages
-/output
+# TaskCat
+taskcat_outputs/
+.taskcat/
+.taskcat_overrides.yml
+functions/packages/
+*.zip
+output/
+
+# Docs
+## Docs 2.1+
+# docs/
+## Docs 2.0
+docs/generated/
+index.html
+prod_example.html
+
+# Python
 __pycache__
 /docs/generated/
 /index.html
 /.python-version
 /.taskcat_overrides.yml
 *.idea
+.python-version
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# IDE workspace settings
+.vscode/
+.idea/

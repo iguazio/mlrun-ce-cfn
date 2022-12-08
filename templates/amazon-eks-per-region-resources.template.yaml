@@ -386,7 +386,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt RegisterTypeFunction.Arn
       TypeName: "AWSQS::Kubernetes::Get"
-      Version: "3.1.3"
+      Version: "3.1.5"
       RandomStr: !Ref RandomStr
       SchemaHandlerPackage: !Sub ["s3://${Prefix}-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_get.zip", {Prefix: !FindInMap [Config, Prefix, Value]}]
       IamPolicy:
@@ -440,7 +440,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt RegisterTypeFunction.Arn
       TypeName: "AWSQS::Kubernetes::Resource"
-      Version: "3.1.4"
+      Version: "3.1.6"
       RandomStr: !Ref RandomStr
       SchemaHandlerPackage: !Sub ["s3://${Prefix}-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip", {Prefix: !FindInMap [Config, Prefix, Value]}]
       IamPolicy:

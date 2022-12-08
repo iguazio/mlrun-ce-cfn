@@ -4,7 +4,6 @@ Metadata:
   QuickStartDocumentation:
     EntrypointName: "Prepare an existing EKS cluster"
     Order: Index c
-  LintSpellExclude: ['http://10.101.0.100:3128/', Security Group, Subnet IDs, 'No', vpc, '(Optional)', 'IDs']
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:

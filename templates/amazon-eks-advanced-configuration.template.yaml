@@ -1,37 +1,18 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Configure advanced options for the Amazon EKS Quick Start. (qs-1r0q2rlel)
 Metadata:
+  cfn-lint:
+    config:
+      ignore_checks: [W9002, W9003]
+      ignore_reasons:
+        W9002: Workload template
+        W9003: Workload template
   QuickStartDocumentation:
     EntrypointName: "Configure advanced options"
     Order: Index d
   ConfigSetName: !Ref ConfigSetName
-  LintSpellExclude:
-    - https://github.com/awslabs/amazon-eks-ami/
-    - Kubernetes
-    - Encrypt
-    - Mibps
-    - initialization
-    - bootstrapping
-    - maxIO
-    - CloudWatch Logs
-    - Linux
-    - Enabled
-    - Disabled
-    - Managed
-    - '(Optional)'
-    - Node
-    - Unmanaged
-    - Default
-    - Launch
-    - Latest
-    - Custom
-    - Security Group
-    - Consul
-    - Vault
-    - namespace
-    - HashiCorp
-    - Partner
-    - UI
+  SentenceCaseExclude:
+    - This
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
@@ -74,24 +55,24 @@ Metadata:
           - BastionEnableTCPForwarding
           - BastionEnableX11Forwarding
           - BastionVariables
-      - Label:
-          default: HashiCorp Vault (AWS Partner security)
-        Parameters:
-          - VaultKubernetesNameSpace
-          - VaultUILoadBalancerType
-          - VaultUIAccessCIDR
-          - VaultVersion
-          - VaultDeploymentSize
-          - VaultNodes
-      - Label:
-          default: HashiCorp Consul (AWS Partner containers)
-        Parameters:
-          - ConsulKubernetesNameSpace
-          - ConsulUILoadBalancerType
-          - ConsulUIAccessCIDR
-          - ConsulVersion
-          - ConsulDeploymentSize
-          - ConsulNodes
+      # - Label:
+      #     default: HashiCorp Vault (AWS Partner security)
+      #   Parameters:
+      #     - VaultKubernetesNameSpace
+      #     - VaultUILoadBalancerType
+      #     - VaultUIAccessCIDR
+      #     - VaultVersion
+      #     - VaultDeploymentSize
+      #     - VaultNodes
+      # - Label:
+      #     default: HashiCorp Consul (AWS Partner containers)
+      #   Parameters:
+      #     - ConsulKubernetesNameSpace
+      #     - ConsulUILoadBalancerType
+      #     - ConsulUIAccessCIDR
+      #     - ConsulVersion
+      #     - ConsulDeploymentSize
+      #     - ConsulNodes
       - Label:
           default: EFS storage class configuration
         Parameters:
@@ -161,30 +142,6 @@ Metadata:
         default: Instance type 4
       OnDemandPercentage:
         default: On-demand percentage
-      VaultUILoadBalancerType:
-        default: Consul UI Internal or external load balancer?
-      VaultUIAccessCIDR:
-        default: Permitted IP range for Vault UI
-      VaultVersion:
-        default: HashiCorp Vault version
-      VaultDeploymentSize:
-        default: HashiCorp Vault deployment size
-      VaultNodes:
-        default: HashiCorp Vault server nodes
-      VaultKubernetesNameSpace:
-        default: Kubernetes namespace for HashiCorp Vault
-      ConsulUILoadBalancerType:
-        default: Consul UI Internal or external load balancer?
-      ConsulUIAccessCIDR:
-        default: Permitted IP range for Consul UI
-      ConsulVersion:
-        default: HashiCorp Consul version
-      ConsulDeploymentSize:
-        default: HashiCorp Consul deployment size
-      ConsulNodes:
-        default: HashiCorp Consul server nodes
-      ConsulKubernetesNameSpace:
-        default: Kubernetes namespace for HashiCorp Consul
 Parameters:
   ConfigSetName:
     Type: String
@@ -233,9 +190,10 @@ Parameters:
     Default: ""
     Description: "(Optional) If an AMI ID is specified, it is used instead of the AMI from your OS/Region."
   KubernetesVersion:
+  # https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-release-calendar
     Type: String
-    AllowedValues: [ "1.19", "1.20", "1.21", "1.22" ]
-    Default: "1.21"
+    AllowedValues: [ "1.20", "1.21", "1.22", "1.23" ]
+    Default: "1.23"
     Description: Kubernetes control plane version.
   IamOidcProvider:
     Type: String
@@ -244,8 +202,15 @@ Parameters:
     Description: Enables IAM roles for Kubernetes service accounts.
   BastionOS:
     Type: String
-    AllowedValues: [ "Amazon-Linux2-HVM", "Amazon-Linux-HVM", "CentOS-7-HVM", "Ubuntu-Server-14.04-LTS-HVM", "Ubuntu-Server-16.04-LTS-HVM", "SUSE-SLES-15-HVM" ]
-    Default: "Amazon-Linux2-HVM"
+    AllowedValues:
+      - Amazon-Linux2-HVM
+      - Amazon-Linux2-HVM-ARM
+      - CentOS-7-HVM
+      - Ubuntu-Server-20.04-LTS-HVM
+      - Ubuntu-Server-22.04-LTS-HVM
+      - Ubuntu-Server-22.04-LTS-HVM-ARM
+      - SUSE-SLES-15-HVM
+    Default: Amazon-Linux2-HVM
     Description: Linux distribution of the bastion host.
   BastionBootstrapScript:
     Default: ""
@@ -333,80 +298,6 @@ Parameters:
     Default: ""
     Type: String
     Description: (Optional) Provide the ID of a security group to use for this node group. If this is not specified, one is created.
-  VaultVersion:
-    Type: String
-    Default: "1.6.0"
-    Description: (Optional)
-    AllowedValues:
-      - "1.6.0"
-      - "1.5.5"
-  VaultDeploymentSize:
-    Type: String
-    Default: "small"
-    Description: Deployment size of dedicated HashiCorp Vault nodes.
-    AllowedValues:
-      - "small"
-      - "medium"
-      - "large"
-  VaultKubernetesNameSpace:
-    Default: "vault-server"
-    Type: String
-    Description: Kubernetes namespace for HashiCorp Vault.
-  VaultNodes:
-    Type: Number
-    Default: "3"
-    AllowedValues:
-      - "3"
-    Description: The number of dedicated Vault server nodes and pods.
-  VaultUILoadBalancerType:
-    Type: String
-    Default: "External"
-    Description: Choose whether the load balancer for HashiCorp Vault is internal or external to the VPC.
-    AllowedValues:
-      - "Internal"
-      - "External"
-  VaultUIAccessCIDR:
-    Default: 127.0.0.1/32
-    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$"
-    Description: 'The CIDR IP range that is permitted to access Vault. Note: A value
-      of 0.0.0.0/0 allows access from ANY IP address.'
-    Type: String
-  ConsulVersion:
-    Type: String
-    Default: "1.8.4"
-    AllowedValues:
-      - "1.8.4"
-  ConsulDeploymentSize:
-    Type: String
-    Default: "small"
-    Description: Deployment size of dedicated HashiCorp Consul nodes.
-    AllowedValues:
-      - "small"
-      - "medium"
-      - "large"
-  ConsulKubernetesNameSpace:
-    Default: "consul-server"
-    Type: String
-    Description: Kubernetes namespace for HashiCorp Consul.
-  ConsulNodes:
-    Type: Number
-    Default: "3"
-    AllowedValues:
-      - "3"
-    Description: The number of dedicated Consul server nodes and pods.
-  ConsulUILoadBalancerType:
-    Type: String
-    Default: "Internal"
-    Description: Choose whether the load balancer for HashiCorp Consul is internal or external to the VPC.
-    AllowedValues:
-      - "Internal"
-      - "External"
-  ConsulUIAccessCIDR:
-    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$"
-    Default: 127.0.0.1/32
-    Description: 'The CIDR IP range that is permitted to access Consul Note: A value
-      of 0.0.0.0/0 allows access from ANY IP address.'
-    Type: String
   WindowsNodeEdition:
     Type: String
     AllowedValues: [Core, Full]
@@ -618,78 +509,6 @@ Resources:
       Type: String
       Value: !Sub '{ "Value": "${EfsProvisionedThroughputInMibps}" }'
       Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/efs/EfsProvisionedThroughputInMibps", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  VaultKubernetesNameSpaceParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${VaultKubernetesNameSpace}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/vault/KubernetesNameSpace", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  VaultUILoadBalancerTypeParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${VaultUILoadBalancerType}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/vault/LoadBalancerType", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  VaultUIAccessCIDRParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${VaultUIAccessCIDR}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/vault/AccessCIDR", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  VaultVersionParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${VaultVersion}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/vault/Version", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  VaultDeploymentSizeParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${VaultDeploymentSize}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/vault/DeploymentSize", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  VaultNodesParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${VaultNodes}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/vault/Nodes", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  ConsulKubernetesNameSpaceParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${ConsulKubernetesNameSpace}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/consul/KubernetesNameSpace", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  ConsulUILoadBalancerTypeParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${ConsulUILoadBalancerType}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/consul/LoadBalancerType", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  ConsulUIAccessCIDRParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${ConsulUIAccessCIDR}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/consul/AccessCIDR", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  ConsulVersionParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${ConsulVersion}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/consul/Version", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  ConsulDeploymentSizeParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${ConsulDeploymentSize}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/consul/DeploymentSize", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
-  ConsulNodesParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: !Sub '{ "Value": "${ConsulNodes}" }'
-      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/hashicorp/consul/Nodes", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
   WindowsNodeEditionParameter:
     Type: AWS::SSM::Parameter
     Properties:
