@@ -1,0 +1,17 @@
+// If no preparation is required, remove all content from here
+
+==== Prepare for the deployment
+
+The {partner-company-name} {partner-product-short-name} UI service's load balancer requires a valid
+https://docs.aws.amazon.com/acm/[AWS Certificate Manager(ACM)]https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html[certificate].
+
+Option 1: Let the Quick Start create one.
+
+* Provide both a Route 53 Hosted Zone ID and domain name for the {partner-product-short-name} load balancer.
+
+Option 2: Bring your own.
+
+* Provide your own ACM certificate using its
+https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscertificatemanager.html#awscertificatemanager-resources-for-iam-policies[Amazon Resource Name(ARN)].
+
+NOTE: The ACM certificate must reside in the same AWS Region in which you deploy this Quick Start.

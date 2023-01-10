@@ -1,0 +1,28 @@
+:quickstart-project-name: quickstart-eks-hashicorp-vault
+:partner-product-name: Vault on Amazon EKS
+:partner-product-short-name: Vault
+:partner-company-name: HashiCorp
+:doc-month: October
+:doc-year: 2020
+:partner-contributors: Daniel Callao, {partner-company-name}
+:quickstart-contributors: Andrew Gargan, AWS Quick Start team
+:default_deployment_region: us-east-1
+:parameters_as_appendix:
+//:production_build:
+// Uncomment these two attributes if you are leveraging
+// - an AWS Marketplace listing.
+// Additional content will be auto-generated based on these attributes.
+// :marketplace_subscription:
+// :marketplace_listing_url: https://example.com/
+:disable_regions:
+//:disable_licenses:
+:custom_title:
+:eks_addin:
+
+:launch_new_vpc: https://fwd.aws/p6VXj
+:launch_existing_vpc: https://fwd.aws/wbebP
+:launch_existing_cluster: https://fwd.aws/5EmBq
+
+:template_new_vpc: https://fwd.aws/DgqPB
+:template_existing_vpc: https://fwd.aws/mbD5g
+:template_existing_cluster: https://fwd.aws/NmpDr

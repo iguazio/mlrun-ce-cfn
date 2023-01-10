@@ -1,0 +1,5 @@
+// Include details about the license and how they can sign up. If no license is required, clarify that. 
+The software included in this deployment is licensed under the Mozilla Public License. For more 
+information, see https://github.com/hashicorp/vault/blob/master/LICENSE[Mozilla Public License 2.0^]. 
+No other licenses are required.
+//TODO Is the above revision okay?

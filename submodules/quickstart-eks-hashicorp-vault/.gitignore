@@ -1,0 +1,7 @@
+venv/
+*.swp
+*.swo
+.taskcat_overrides.yml
+.python-version
+tmp/
+taskcat_outputs/

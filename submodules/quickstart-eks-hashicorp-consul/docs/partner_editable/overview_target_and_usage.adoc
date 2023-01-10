@@ -1,0 +1,19 @@
+// Replace the content in <>
+// Identify your target audience and explain how/why they would use this Quick Start.
+// Avoid borrowing text from third-party websites (copying text from AWS service documentation is fine). Also, avoid
+// marketing-speak, focusing instead on the technical aspect.
+
+
+This Quick Start reference deployment guide provides step-by-step instructions for deploying {partner-company-name} {partner-product-short-name} on Amazon Elastic Kubernetes Service (Amazon EKS) via {partner-company-name} {partner-product-short-name}'s Helm chart.
+
+{partner-company-name} {partner-product-short-name} is a product that helps to centrally secure, store, and control access to tokens, passwords, certificates, and encryption keys through its user interface (UI), command line interface (CLI), or HTTP application programming interface (API).
+
+Use cases for {partner-company-name} {partner-product-short-name} include:
+
+* Service registry and health monitoring to provide a real-time directory of all services and their health status.
+* Network middleware automation with service discovery for dynamic reconfiguration as services scale up, down, or move.
+* Zero-trust network with service mesh to secure service-to-service traffic with identity-based security policies and encrypted traffic with mutual Transport Layer Security (TLS).
+
+This Quick Start is for service-networking professionals and application developers who want to securely connect, monitor, and automate services. It's deployed via the
+https://github.com/hashicorp/consul-helm[{partner-product-short-name} Helm chart^],
+which contains all of the resource definitions to install and configure {partner-product-short-name} inside of a Kubernetes cluster.

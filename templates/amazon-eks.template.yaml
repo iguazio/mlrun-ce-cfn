@@ -23,8 +23,12 @@ Parameters:
       hosted. When using your own bucket, you must specify this value.
     Type: String
   RemoteAccessCIDR:
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     Type: String
+    AllowedPattern: ^(disabled-onlyssmaccess|(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2])))$
+    ConstraintDescription: >-
+      CIDR block parameter must be disabled-onlyssmaccess or in the form
+      x.x.x.x/x.
+    Default: disabled-onlyssmaccess
   EKSPublicAccessEndpoint:
     Type: String
     AllowedValues: [Enabled, Disabled]
@@ -193,54 +197,6 @@ Parameters:
     AllowedValues: [ Managed, Unmanaged ]
     Default: Managed
     Description: Choose "Unmanaged" to create an auto-scaling group without using the EKS managed node groups feature.
-  VaultIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-    Description: "For more information, see https://github.com/aws-quickstart/quickstart-eks-hashicorp-vault/."
-  VaultUIDomainName:
-    Type: String
-    Description: >-
-      Fully qualified DNS name for the vault-ui service load balancer.
-      If you don't provide a value for "ACM SSL certificate ARN", use the HostedZoneID.
-    MaxLength: 128
-    Default: ""
-  VaultUIHostedZoneID:
-    Type: String
-    Description: >-
-      Route 53-hosted zone ID of the domain name. If you don't provide an ACMSSLCertificateArn value, the Quick Start
-      creates an ACM certificate for you using HostedZoneID in conjunction with DomainName.
-    Default: ""
-  VaultUIACMSSLCertificateArn:
-    Description: >-
-      ARN of the load balancer's ACM SSL certificate. If you don't provide values for "Domain name" and
-      "Hosted zone id", provide a value for "ACM SSL certificate ARN".
-    Type: String
-    Default: ""
-  ConsulIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-    Description: "For more information, see https://github.com/aws-quickstart/quickstart-eks-hashicorp-consul/."
-  ConsulUIDomainName:
-    Type: String
-    Description: >-
-      Fully qualified DNS name for the consul-ui service load balancer.
-      If you don't provide a value for "ACM SSL certificate ARN", use the ConsulHostedZoneID.
-    MaxLength: 128
-    Default: ""
-  ConsulUIHostedZoneID:
-    Type: String
-    Description: >-
-      Route 53-hosted zone ID of the domain name. If you don't provide an ConsulUIACMSSLCertificateArn value, the Quick Start
-      creates an ACM certificate for you using ConsulUIHostedZoneID in conjunction with ConsulUIDomainName.
-    Default: ""
-  ConsulUIACMSSLCertificateArn:
-    Description: >-
-      ARN of the load balancer's ACM SSL certificate. If you don't provide values for "Domain name" and
-      "Hosted zone id", provide a value for "ACM SSL certificate ARN".
-    Type: String
-    Default: ""
   RancherIntegration:
     Type: String
     AllowedValues: [Enabled, Disabled]
@@ -256,23 +212,24 @@ Parameters:
     Default: Disabled
     Description: "For more information, see https://github.com/aws-quickstart/quickstart-eks-rancher/."
   RTFFabricName:
-    Description: Runtime Fabric Name
+    Description: Runtime Fabric name.
     Type: String
     Default: ""
   OrgID:
-    Description: Oraganization ID of your Anypoint
+    Description: Organization ID of your Anypoint.
     Type: String
     Default: ""
   UserName:
-    Description: Anypoint Platform Username
+    Description: Anypoint platform username.
     Type: String
     Default: ""
   Password:
-    Description: Anypoint Platform Password
+    Description: Anypoint platform password.
     Type: String
+    NoEcho: true
     Default: ""
   MuleLicenseKeyinbase64:
-    Description: Mule License Key in Base 64 Format.
+    Description: MuleSoft license key in base64 format.
     Type: String
     Default: ""
 Mappings:
@@ -283,8 +240,6 @@ Conditions:
   EnableProxy: !Not [!Equals [!Ref HttpProxy, ""]]
   DeployTestStack: !Equals [!Ref TestSuite, Enabled]
   EnableSnyk: !Equals [ !Ref SnykIntegration, Enabled]
-  EnableVault: !Equals [ !Ref VaultIntegration, Enabled]
-  EnableConsul: !Equals [ !Ref ConsulIntegration, Enabled]
   EnableNewRelic: !Equals [ !Ref NewRelicIntegration, Enabled]
   EnableCalico: !Equals [ !Ref CalicoIntegration, Enabled]
   EnableRafaySys: !Equals [ !Ref RafaySysIntegration, Enabled ]
@@ -300,6 +255,9 @@ Conditions:
   EnableBastion: !And
     - !Equals [!Ref 'ProvisionBastionHost', 'Enabled']
     - !Not [!Equals [!Ref PublicSubnet1ID, ""]]
+  EnableBastionWithEIP: !And
+    - !Condition EnableBastion
+    - !Not [!Equals [!Ref RemoteAccessCIDR, disabled-onlyssmaccess]]
   CustomBastionRole: !Not [!Equals [~~/<ConfigSetName>/bastion/BastionIAMRoleName~~, '']]
   AdditionalVars: !Not [!Equals [~~/<ConfigSetName>/bastion/BastionVariables~~, '']]
   EnableClusterAutoScaler: !Equals [!Ref 'ProvisionClusterAutoScaler', 'Enabled']
@@ -339,24 +297,24 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion-entrypoint-existing-vpc.template.yaml
+        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         BastionHostName: EKSBastion
         BastionBanner: !Sub
-          - 's3://${S3Bucket}/${QSS3KeyPrefix}scripts/bastion_banner_message.txt'
+          - s3://${S3Bucket}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/scripts/banner_message.txt
           - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
         EnableBanner: true
         BastionTenancy: default
-        NumBastionHosts: "1"
+        NumBastionHosts: 1
         OSImageOverride: !Ref BastionAMIID
         VPCID: !Ref VPCID
-        PublicSubnet1ID: !Ref PublicSubnet1ID
-        PublicSubnet2ID: !If [2AZDeployment, !Ref PublicSubnet2ID, !Ref "AWS::NoValue"]
+        PublicSubnet1ID: !If [EnableBastionWithEIP, !Ref PublicSubnet1ID, !Ref PrivateSubnet1ID]
+        PublicSubnet2ID: !If [2AZDeployment, !If [EnableBastionWithEIP, !Ref PublicSubnet2ID, !Ref PrivateSubnet2ID], !Ref AWS::NoValue]
         KeyPairName: !Ref KeyPairName
         QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
+        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-linux-bastion/
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         BastionInstanceType: ~~/<ConfigSetName>/bastion/BastionInstanceType~~
@@ -364,24 +322,23 @@ Resources:
         AlternativeInitializationScript: !If
           - DefaultBastionBootstrap
           - !Sub
-            - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/bastion_bootstrap.sh'
-            - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+            - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/bastion_bootstrap.sh
+            - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
               S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
           - ~~/<ConfigSetName>/bastion/BastionBootstrapScript~~
         AlternativeIAMRole: !GetAtt IamStack.Outputs.BastionRole
         BastionAMIOS: ~~/<ConfigSetName>/bastion/BastionOS~~
+        OndemandPercentage: ~~/<ConfigSetName>/bastion/OnDemandPercentage~~
         EnableTCPForwarding: ~~/<ConfigSetName>/bastion/BastionEnableTCPForwarding~~
         EnableX11Forwarding: ~~/<ConfigSetName>/bastion/BastionEnableX11Forwarding~~
         EnvironmentVariables: !Sub
-        - >
-          K8S_CLUSTER_NAME=${EKSControlPlane.Outputs.EKSName},
-          K8S_CA_DATA=${EKSControlPlane.Outputs.CAData},
-          K8S_VERSION=${KubernetesVersion},
-          K8S_ENDPOINT=${EKSControlPlane.Outputs.EKSEndpoint}${Joiner}
-          ${BastionVariables}
-        - Joiner: !If [AdditionalVars, ",", ""]
-          BastionVariables: ~~/<ConfigSetName>/bastion/BastionVariables~~
-          KubernetesVersion: ~~/<ConfigSetName>/controlplane/KubernetesVersion~~
+          - >
+            K8S_CLUSTER_NAME=${EKSControlPlane.Outputs.EKSName},
+            K8S_VERSION=${KubernetesVersion}${Joiner}
+            ${BastionVariables}
+          - Joiner: !If [AdditionalVars, ',', '']
+            BastionVariables: ~~/<ConfigSetName>/bastion/BastionVariables~~
+            KubernetesVersion: ~~/<ConfigSetName>/controlplane/KubernetesVersion~~
   NodeGroupStack:
     Type: "AWS::CloudFormation::Stack"
     Metadata:
@@ -785,72 +742,6 @@ Resources:
         KubeClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
         SnykIntegrationId: !Ref SnykIntegrationId
         Namespace: snyk-monitor
-  VaultStack:
-    DependsOn: FunctionStack
-    Condition: EnableVault
-    Type: AWS::CloudFormation::Stack
-    Metadata:
-      DependsOn:
-        - !Ref ControlPlaneSecurityGroupIngress
-        - !Ref NodeGroupStack
-        - !If [EnableFargate, !Ref FargateNamespaces, !Ref 'AWS::NoValue']
-    Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-hashicorp-vault/templates/quickstart-eks-hashicorp-vault.template.yml'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        ClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        HttpProxy: !Ref HttpProxy
-        KeyPairName: !Ref KeyPairName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-eks-hashicorp-vault/
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        AccessCIDR: ~~/<ConfigSetName>/hashicorp/vault/AccessCIDR~~
-        KubernetesNameSpace: ~~/<ConfigSetName>/hashicorp/vault/KubernetesNameSpace~~
-        PrivateSubnet1ID: !Ref PrivateSubnet1ID
-        PrivateSubnet2ID: !Ref PrivateSubnet2ID
-        PrivateSubnet3ID: !Ref PrivateSubnet3ID
-        LoadBalancerType: ~~/<ConfigSetName>/hashicorp/vault/LoadBalancerType~~
-        ACMSSLCertificateArn: !Ref VaultUIACMSSLCertificateArn
-        HostedZoneID: !Ref VaultUIHostedZoneID
-        DomainName: !Ref VaultUIDomainName
-        VaultVersion: ~~/<ConfigSetName>/hashicorp/vault/Version~~
-        VaultDeploymentSize: ~~/<ConfigSetName>/hashicorp/vault/DeploymentSize~~
-        Nodes: ~~/<ConfigSetName>/hashicorp/vault/Nodes~~
-  ConsulStack:
-    DependsOn: FunctionStack
-    Condition: EnableConsul
-    Type: AWS::CloudFormation::Stack
-    Metadata:
-      DependsOn:
-        - !Ref ControlPlaneSecurityGroupIngress
-        - !Ref NodeGroupStack
-        - !If [EnableFargate, !Ref FargateNamespaces, !Ref 'AWS::NoValue']
-    Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-hashicorp-consul/templates/quickstart-eks-hashicorp-consul.template.yml'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        ClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        HttpProxy: !Ref HttpProxy
-        KeyPairName: !Ref KeyPairName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-eks-hashicorp-consul/
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        RemoteAccessCIDR: ~~/<ConfigSetName>/hashicorp/consul/AccessCIDR~~
-        KubernetesNameSpace: ~~/<ConfigSetName>/hashicorp/consul/KubernetesNameSpace~~
-        PrivateSubnet1ID: !Ref PrivateSubnet1ID
-        PrivateSubnet2ID: !Ref PrivateSubnet2ID
-        PrivateSubnet3ID: !Ref PrivateSubnet3ID
-        LoadBalancerType: ~~/<ConfigSetName>/hashicorp/consul/LoadBalancerType~~
-        ACMSSLCertificateArn: !Ref ConsulUIACMSSLCertificateArn
-        HostedZoneID: !Ref ConsulUIHostedZoneID
-        DomainName: !Ref ConsulUIDomainName
-        ConsulVersion: ~~/<ConfigSetName>/hashicorp/consul/Version~~
-        ConsulDeploymentSize: ~~/<ConfigSetName>/hashicorp/consul/DeploymentSize~~
-        ConsulReplicas: ~~/<ConfigSetName>/hashicorp/consul/Nodes~~
   CalicoStack:
     DependsOn: FunctionStack
     Condition: EnableCalico
@@ -990,20 +881,11 @@ Resources:
         ClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
 Outputs:
   BastionIP:
-    Value: !If
-      - EnableBastion
-      - !GetAtt BastionStack.Outputs.EIP1
-      - ""
+    Value: !If [EnableBastionWithEIP, !GetAtt BastionStack.Outputs.EIP1, '']
   BastionSecurityGroup:
-    Value: !If
-      - EnableBastion
-      - !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-      - ""
+    Value: !If [EnableBastion, !GetAtt BastionStack.Outputs.BastionSecurityGroupID, '']
   BastionAutoScalingGroup:
-    Value: !If
-      - EnableBastion
-      - !GetAtt BastionStack.Outputs.BastionAutoScalingGroup
-      - ""
+    Value: !If [EnableBastion, !GetAtt BastionStack.Outputs.BastionAutoScalingGroup, '']
   EKSClusterName:
     Value: !GetAtt EKSControlPlane.Outputs.EKSName
   ControlPlaneSecurityGroup:

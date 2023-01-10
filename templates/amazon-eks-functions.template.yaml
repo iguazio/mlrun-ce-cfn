@@ -102,7 +102,7 @@ Resources:
       Handler: awsqs_kubernetes_resource.utils.proxy_wrap
       MemorySize: 256
       Role: !Ref KubernetesAdminRoleArn
-      Runtime: python3.7
+      Runtime: python3.8
       Timeout: 900
       Code:
         S3Bucket: !Sub ['${Prefix}-lambdazips-${AWS::Region}-${AWS::AccountId}', {Prefix: !FindInMap [Config, Prefix, Value]}]

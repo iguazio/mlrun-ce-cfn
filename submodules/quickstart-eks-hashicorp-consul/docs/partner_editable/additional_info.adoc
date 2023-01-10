@@ -1,0 +1,232 @@
+// Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage
+//instructions for your software, but add links to your product documentation for that information.
+//Should any sections not be applicable, remove them
+
+== Post-deployment steps
+// If Post-deployment steps are required, add them here. If not, remove the heading
+
+=== Test the deployment
+
+==== Kubernetes Consul deployment namespace and dedicated node selection
+
+This deployment creates a `consul-server` namespace by default. Verify the namespace in Kubernetes:
+
+----
+$ kubectl get ns
+NAME              STATUS   AGE
+default           Active   3h24m
+kube-node-lease   Active   3h24m
+kube-public       Active   3h24m
+kube-system       Active   3h24m
+consul-server     Active   3h9m
+----
+
+This deployment builds Kubernetes server pods on dedicated nodes in the `consul-server` namespace. Verify the dedicated nodes:
+
+----
+$ kubectl get pods -o wide -n consul-server
+NAME                                                              READY   STATUS      RESTARTS   AGE     IP            NODE                                        NOMINATED NODE   READINESS GATES
+consul-1602814488-consul-6znks                                    1/1     Running     0          3h23m   10.0.31.27    ip-10-0-14-63.us-west-2.compute.internal    <none>           <none>
+consul-1602814488-consul-7dwxk                                    1/1     Running     0          3h23m   10.0.33.58    ip-10-0-55-7.us-west-2.compute.internal     <none>           <none>
+consul-1602814488-consul-962dw                                    1/1     Running     0          3h23m   10.0.95.110   ip-10-0-78-177.us-west-2.compute.internal   <none>           <none>
+consul-1602814488-consul-connect-injector-webhook-deploymekjtd9   1/1     Running     0          3h23m   10.0.45.224   ip-10-0-55-7.us-west-2.compute.internal     <none>           <none>
+consul-1602814488-consul-hgmt8                                    1/1     Running     0          3h23m   10.0.80.164   ip-10-0-83-89.us-west-2.compute.internal    <none>           <none>
+consul-1602814488-consul-mesh-gateway-b66ffc55b-mvtv2             2/2     Running     0          3h23m   10.0.49.86    ip-10-0-55-7.us-west-2.compute.internal     <none>           <none>
+consul-1602814488-consul-mesh-gateway-b66ffc55b-qg4ns             2/2     Running     0          3h23m   10.0.26.238   ip-10-0-14-3.us-west-2.compute.internal     <none>           <none>
+consul-1602814488-consul-mesh-gateway-b66ffc55b-vvtq7             2/2     Running     0          3h23m   10.0.80.70    ip-10-0-83-89.us-west-2.compute.internal    <none>           <none>
+consul-1602814488-consul-mxkrr                                    1/1     Running     0          3h23m   10.0.34.78    ip-10-0-34-50.us-west-2.compute.internal    <none>           <none>
+consul-1602814488-consul-server-0                                 1/1     Running     0          3h23m   10.0.13.78    ip-10-0-14-3.us-west-2.compute.internal     <none>           <none>
+consul-1602814488-consul-server-1                                 1/1     Running     0          3h23m   10.0.95.234   ip-10-0-83-89.us-west-2.compute.internal    <none>           <none>
+consul-1602814488-consul-server-2                                 1/1     Running     0          3h23m   10.0.56.52    ip-10-0-55-7.us-west-2.compute.internal     <none>           <none>
+consul-1602814488-consul-sync-catalog-5bc656b68d-hvfv8            1/1     Running     0          3h23m   10.0.68.153   ip-10-0-83-89.us-west-2.compute.internal    <none>           <none>
+consul-1602814488-consul-zxj8m                                    1/1     Running     0          3h23m   10.0.9.167    ip-10-0-14-3.us-west-2.compute.internal     <none>           <none>
+generate-gossip-secret-sg-087bc91b3b3c5dc0d-vqg6j                 0/1     Completed   0          3h25m   10.0.49.86    ip-10-0-55-7.us-west-2.compute.internal     <none>           <none>
+----
+
+==== Kubernetes services
+
+This deployment creates at least seven services:
+
+----
+$ kubectl get svc -n consul-server
+NAME                                            TYPE           CLUSTER-IP       EXTERNAL-IP                                                              PORT(S)
+consul-1602814488-consul-connect-injector-svc   ClusterIP      172.20.81.243    <none>                                                                   443/TCP
+consul-1602814488-consul-dns                    ClusterIP      172.20.180.148   <none>                                                                   53/TCP,53/UDP
+consul-1602814488-consul-mesh-gateway           LoadBalancer   172.20.121.116   a5372b3698926442585aa5eb6b5d6cee-315665803.us-west-2.elb.amazonaws.com   443:30551/TCP
+consul-1602814488-consul-server                 ClusterIP      None             <none>                                                                   8501/TCP,8301/TCP,8301/UDP,8302/TCP,8302/UDP,8300/TCP,8600/TCP,8600/UDP
+consul-1602814488-consul-ui                     NodePort       172.20.249.130   <none>                                                                   443:32732/TCP
+k8sconsul                                       ExternalName   <none>           consul.service.consul                                                    <none>
+k8smesh-gateway                                 ExternalName   <none>           mesh-gateway.service.consul                                              <none>
+----
+
+==== Consul agent TLS encryption
+Verify the deployment's configuration:
+
+----
+$ kubectl get deploy -n consul-server -o yaml
+----
+
+Note the volume mounts for each pod:
+
+----
+volumeMounts:
+- mountPath: /consul/tls/ca
+  name: consul-ca-cert
+- mountPath: /consul/tls/client/ca
+  name: consul-auto-encrypt-ca-cert
+----
+
+==== Consul UI Secure Sockets Layer (SSL) certificate
+Verify the DNS endpoint of the deployment, and check for the SSL certificate:
+----
+$ openssl s_client -connect lonconsul.gargana.myinstance.com:443
+CONNECTED(00000007)
+depth=2 C = US, O = Amazon, CN = Amazon Root CA 1
+verify return:1
+depth=1 C = US, O = Amazon, OU = Server CA 1B, CN = Amazon
+verify return:1
+depth=0 CN = lonconsul.gargana.myinstance.com
+verify return:1
+---
+Certificate chain
+0 s:CN = lonconsul.gargana.myinstance.com
+  i:C = US, O = Amazon, OU = Server CA 1B, CN = Amazon
+1 s:C = US, O = Amazon, OU = Server CA 1B, CN = Amazon
+  i:C = US, O = Amazon, CN = Amazon Root CA 1
+2 s:C = US, O = Amazon, CN = Amazon Root CA 1
+  i:C = US, ST = Arizona, L = Scottsdale, O = "Starfield Technologies, Inc.", CN = Starfield Services Root Certificate Authority - G2
+3 s:C = US, ST = Arizona, L = Scottsdale, O = "Starfield Technologies, Inc.", CN = Starfield Services Root Certificate Authority - G2
+  i:C = US, O = "Starfield Technologies, Inc.", OU = Starfield Class 2 Certification Authority
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIIFrDCCBJSgAwIBAgIQA+/KZ0HG5aT6xAZLv0NjlDANBgkqhkiG9w0BAQsFADBG
+MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRUwEwYDVQQLEwxTZXJ2ZXIg
+Q0EgMUIxDzANBgNVBAMTBkFtYXpvbjAeFw0yMDEwMTUwMDAwMDBaFw0yMTExMTMy
+MzU5NTlaMCsxKTAnBgNVBAMTIGxvbmNvbnN1bC5nYXJnYW5hLm15aW5zdGFuY2Uu
+Y29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7ZwqhfY7fU/ui+i6
+FmqhBgB2AFzcQ5L+5qtFRLFemtRW5hA3+9X6R9yhc5SyXub2xw7KAAABdS2+k5sA
+.....
+.....
+.....
+AAQDAEcwRQIhAOUW8k67YCzwqxx/pVYIzR5heOqYsqCW/6nRFkyECj6YAiA3007S
+pf7GzxULAaTAwQjpnvb/d/tu2O9VxqTxLoSTPjANBgkqhkiG9w0BAQsFAAOCAQEA
+nwKKUxQ+VDDKbh93XJ8mdhXYGHk8R9MH/HUprH9i2JSVovTYabo+kk8HC5Vo0Pwu
+NOEMjRe008xraTpAzfSjr2fupjltJB6lXehPe5sJaWPJ0mX3OBt4VyfrO6MYdmpy
+iGLhMXM357+CN75aMv1BD4pVA+a75dhvcUOfZCni4guQ+7wbbwONrKdwtg9FudWf
+XzvTdg1Q8VPfuQWUJb8tmITseg+8KDTyUn1u2SiNWHj17hBTSBTjkVt97id0BtZ/
+UYrBWVldmJw0pJ6XYgQc6pBg6A86390sGkRzOfhYkT8AIbKNKSwtCRV0aBY2Nb4+
+i81nP0KKeSvWcRf4/Gj+WA==
+-----END CERTIFICATE-----
+subject=CN = lonconsul.gargana.myinstance.com
+
+issuer=C = US, O = Amazon, OU = Server CA 1B, CN = Amazon
+
+---
+----
+
+==== Envoy proxy client leaf certificate exchange
+To check the leaf certificate generation at the proxy endpoints, you must deploy at least one dummy service and its `envoy`
+proxy. For more information, see https://learn.hashicorp.com/tutorials/consul/service-mesh-application-secure-networking[Secure Applications with Service Sidecar Proxies^].
+
+Check the `web` envoy proxy:
+
+----
+$ kubectl -n consul-server  exec  -it consul-1602814488-consul-server-0 -- /bin/sh
+/ # consul catalog services
+api
+api-sidecar-proxy
+consul
+consulconsul-1602814488-consul-connect-injector-svc-vault-server
+consulconsul-1602814488-consul-dns-vault-server
+consulconsul-1602814488-consul-mesh-gateway-vault-server
+consulconsul-1602814488-consul-server-vault-server
+consulconsul-1602814488-consul-ui-vault-server
+consulkube-dns-kube-system
+consulkubernetes-default
+consulweb-vault-server
+mesh-gateway
+web
+web-sidecar-proxy
+/ # curl -ks https://127.0.0.1:8501/v1/agent/connect/ca/leaf/web-sidecar-proxy | jq
+{
+  "SerialNumber": "1a",
+  "CertPEM": "-----BEGIN CERTIFICATE-----\nMIICYDCCAgagAwIBAgIBGjAKBggqhkjOPQQDAjAxMS8wLQYDVQQDEyZwcmktMTVv\nYXZxMHIuY29uc3VsLmNhLjNjN2YzM2U3LmNvbnN1bDAeFw0yMDEwMTkyMTQ3NDZa\nFw0yMDEwMjIyMTQ3NDZaMDYxNDAyBgNVBAMTK3dlYnNpZGVjYXJwcm94eS5zdmMu\nZGVmYXVsdC4zYzdmMzNlNy5jb25zdWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNC\nAATZ2PTll8KrJxSmOvOf3eVvXbuUlCNvrAatL+v+/i+B4doGWY+r8a0zGMYVgYJj\nglOPRYzPxEnAnqR9OYP9ao52o4IBCDCCAQQwDgYDVR0PAQH/BAQDAgO4MB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMCkGA1UdDgQi\nBCCpMMDV6WJdbaLk+giLOOZ9qEgXffbs1DtvFHvqK34PpDArBgNVHSMEJDAigCBg\nM4sn0idMnqzXCFldTIhkymtM/YjX+Su2T6p+BfQe8jBtBgNVHREEZjBkhmJzcGlm\nZmU6Ly8zYzdmMzNlNy04NDcyLTk4M2YtNzJlMi02ZjE2OTlkNTE1NjQuY29uc3Vs\nL25zL2RlZmF1bHQvZGMvdXMtd2VzdC0yL3N2Yy93ZWItc2lkZWNhci1wcm94eTAK\nBggqhkjOPQQDAgNIADBFAiEAkE4G+I42DtHX26+DrXCfzjXmvIKA1qDXYHdGYN3/\nSmACIGJwwxfltaME49SW99rnrhSoDVeTy5tnyX1gc6R2JtWU\n-----END CERTIFICATE-----\n",
+  "PrivateKeyPEM": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIJKcR1omVjHnfKkV/UFVw3vOFkqzhYKxFkDrRgiWWZRGoAoGCCqGSM49\nAwEHoUQDQgAE2dj05ZfCqycUpjrzn93lb127lJQjb6wGrS/r/v4vgeHaBlmPq/Gt\nMxjGFYGCY4JTj0WMz8RJwJ6kfTmD/WqOdg==\n-----END EC PRIVATE KEY-----\n",
+  "Service": "web-sidecar-proxy",
+  "ServiceURI": "spiffe://3c7f33e7-8472-983f-72e2-6f1699d51564.consul/ns/default/dc/us-west-2/svc/web-sidecar-proxy",
+  "ValidAfter": "2020-10-19T21:47:46Z",
+  "ValidBefore": "2020-10-22T21:47:46Z",
+  "CreateIndex": 428260,
+  "ModifyIndex": 428260
+}
+----
+
+==== Consul raft peer election
+
+Check the raft peer election status:
+
+----
+$ kubectl -n consul-server  exec  -it consul-1602814488-consul-server-0 -- /bin/sh
+/ # consul operator raft list-peers
+Node                               ID                                    Address           State     Voter  RaftProtocol
+consul-1602814488-consul-server-1  bfd1069d-4780-be4f-6229-4b7a7309e88c  10.0.95.234:8300  leader    true   3
+consul-1602814488-consul-server-2  fc329572-3f74-7488-6885-f50769a5c5a1  10.0.56.52:8300   follower  true   3
+consul-1602814488-consul-server-0  9162e175-e79f-9a0b-3ae1-ad7a08ee8fe7  10.0.13.78:8300   follower  true   3
+----
+
+==== Consul autopilot
+
+Check the Consul autopilot configuration:
+
+----
+$ kubectl -n consul-server  exec  -it consul-1602814488-consul-server-0 -- /bin/sh
+/ # curl -ks https://127.0.0.1:8501/v1/operator/autopilot/configuration | jq
+{
+  "CleanupDeadServers": true,
+  "LastContactThreshold": "200ms",
+  "MaxTrailingLogs": 250,
+  "MinQuorum": 0,
+  "ServerStabilizationTime": "10s",
+  "RedundancyZoneTag": "",
+  "DisableUpgradeMigration": false,
+  "UpgradeVersionTag": "",
+  "CreateIndex": 5,
+  "ModifyIndex": 5
+}
+----
+
+=== Best practices for using Consul on AWS
+
+The following best practices are enabled by default for this Quick Start:
+
+* Enable Consul ACLs for token-based authentication. This lets users use a token to authenticate and
+access the Consul control plane and APIs. For more information, see
+https://learn.hashicorp.com/tutorials/consul/access-control-setup-production[Secure Consul with Access Control Lists (ACLs)^].
+
+* Enable Gossip encryption. Gossip encryption helps to ensure that the ACL authentication between the server and client agents (RPC) are protected from sniffing. For more information, see
+https://learn.hashicorp.com/tutorials/consul/gossip-encryption-secure?in=consul/security-networking#gossip-encryption[Secure Gossip Communication with Encryption^].
+
+* Enable Agent TLS encryption. Consul uses TLS to verify the authenticity of servers and clients. For more information, see https://learn.hashicorp.com/tutorials/consul/tls-encryption-secure?in=consul/security-networking[Secure Consul Agent Communication with TLS Encryption^].
+
+* Enable SSL certificates on Consul agents. This helps to protect the Consul agent communication from attacks. For more information, see https://learn.hashicorp.com/tutorials/consul/tls-encryption-openssl-secure?in=consul/day-2-agent-authentication[Secure Consul Agent Communication with TLS Encryption and OpenSSL Certificates^].
+
+* Enable Connect Inject and the gRPC protocol. This enables the Envoy proxy on the client pods. For more information, see https://learn.hashicorp.com/tutorials/consul/service-mesh-with-envoy-proxy#enable-connect-and-grpc[Secure Service Communication with Consul Service Mesh and Envoy^].
+
+== Security
+// Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating
+// data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed
+// information.
+
+* End-to-end TLS is enforced.
+* A dedicated Kubernetes namespace is created for {partner-product-name} Kubernetes resources.
+* {partner-product-name} runs on dedicated Kubernetes nodes.
+* The {partner-product-short-name} UI is provided for exploratory purposes. We recommend keeping the
+{partner-product-short-name} UI accessible only inside the VPC or disabling access to it by setting the
+permitted IP range to 127.0.0.1/32.
+
+== Other useful information
+//Provide any other information of interest to users, especially focusing on areas where AWS or cloud usage differs
+//from on-premises usage.
+
+* https://www.consul.io/docs/guides/kuberenetes-deployment[Deploy Consul with Kubernetes^]
