@@ -92,6 +92,7 @@ Metadata:
         Parameters:
           - ClusterDomain
           - REDISUrl
+          - MLrunCeVersion
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -117,14 +118,22 @@ Metadata:
         default: Route 53 hosted DNS domain
       REDISUrl:
         default: The URL of your REDIS database
+      MLrunCeVersion:
+        default: MLRunCE Helm Chart version
 
 Parameters:
   AvailabilityZones:
     Description: List of Availability Zones to use for the subnets in the VPC. The number of selected entries should match the value entered for Number of Availability Zones parameter.
     Type: List<AWS::EC2::AvailabilityZone::Name>
+  # NOTE: Don't change the type of KeyPairName parameter back to AWS::EC2::KeyPair::KeyName.
+  # String type is intentional as it enables default (empty) value. By using defaults, we
+  # promote AWS Systems Manager Session Manager service, which is a recommended way
+  # to connect to EC2 instances.
   KeyPairName:
-    Description: Name of an existing key pair, which allows to securely connect to EC2 instance after they launch.
-    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing key pair, which allows you to securely connect to your instance after it launches.
+      Leave empty to proceed without a key pair. You would need to use AWS Systems Manager Session Manager to connect to the provisioned EC2 instances.
+    Type: String
+    Default: ""
   RemoteAccessCIDR:
     Default: "0.0.0.0/0"
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
@@ -169,22 +178,22 @@ Parameters:
     Type: String
     MinLength: 1
   MLrunCeVersion:
-    Description: MLRunCE Helm Chart version
+    Description: (Optional) Override default (latest) Chart version
     Type: String
-    Default: "0.0.25"
+    Default: ""
   REDISUrl:
     Type: String
     Default: redis-replace-me.com
 
 Mappings:
   Config:
-    QSS3KeyPrefix: { Value: '' }
+    QSS3KeyPrefix: { Value: quickstart-amazon-eks/ }
     QSS3BucketRegion: { Value: us-east-2 }
     EKSPublicAccessEndpoint: { Value: Enabled }
     ALBIngressController: { Value: Enabled }
     NodeGroupType: { Value: Managed }
     KubernetesVersion: { Value: 1.22 }
-    QSS3BucketName: { Value: mlrun-kit-alexp }
+    QSS3BucketName: { Value: mlrun-ce-cfn }
 
 Resources:
   AdvancedConfigDefaultsStack:

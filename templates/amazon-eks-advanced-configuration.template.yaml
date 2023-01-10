@@ -55,6 +55,7 @@ Metadata:
           - BastionEnableTCPForwarding
           - BastionEnableX11Forwarding
           - BastionVariables
+          - OnDemandBastionPercentage
       # - Label:
       #     default: HashiCorp Vault (AWS Partner security)
       #   Parameters:
@@ -142,6 +143,8 @@ Metadata:
         default: Instance type 4
       OnDemandPercentage:
         default: On-demand percentage
+      OnDemandBastionPercentage:
+        default: On-demand percentage
 Parameters:
   ConfigSetName:
     Type: String
@@ -192,9 +195,9 @@ Parameters:
   KubernetesVersion:
   # https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-release-calendar
     Type: String
-    AllowedValues: [ "1.20", "1.21", "1.22", "1.23" ]
-    Default: "1.23"
     Description: Kubernetes control plane version.
+    AllowedValues: ['1.23', '1.22', '1.21', '1.20']
+    Default: '1.23'
   IamOidcProvider:
     Type: String
     AllowedValues: [ "Enabled", "Disabled" ]
@@ -266,6 +269,15 @@ Parameters:
     MaxValue: 100
     Default: 100
     Description: Only applies if the NodeGroupType parameter is set to "Unmanaged." Set the percentage of on-demand instances and spot instances. With a default of 100, the percentages are 100% for on-demand instances and 0% for spot instances.
+  OnDemandBastionPercentage:
+    Type: Number
+    Description: >-
+      Set the percentage of on-demand instances and spot instances. With a
+      default of 100, the percentages are 100% for on-demand instances and 0%
+      for spot instances.
+    MinValue: 0
+    MaxValue: 100
+    Default: 100
   NodeInstanceType2:
     Default: ""
     Description: (Optional) Only applies if the NodeGroupType parameter is set to "Unmanaged." This is the second type of EC2 instance for the nodes.
@@ -491,6 +503,12 @@ Resources:
       Type: String
       Value: !Sub '{ "Value": "${BastionVariables}" }'
       Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/bastion/BastionVariables", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
+  OnDemandBastionPercentageParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Sub '{ "Value": "${OnDemandBastionPercentage}" }'
+      Name: !Sub ["${ParameterPrefix}/${ConfigSetName}/bastion/OnDemandPercentage", {ParameterPrefix: !FindInMap [Config, ParameterPrefix, Value]}]
   EfsPerformanceModeParameter:
     Type: AWS::SSM::Parameter
     Properties:

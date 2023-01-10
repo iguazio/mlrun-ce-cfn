@@ -1,0 +1,37 @@
+project:
+  name: quickstart-eks-hashicorp-consul
+  owner: quickstart-eng@amazon.com
+  package_lambda: true
+  shorten_stack_name: true
+  lambda_source_path: functions/source
+  lambda_zip_path: functions/packages
+  template: templates/quickstart-eks-hashicorp-consul.template.yml
+  regions:
+  - eu-north-1
+  - ap-south-1
+  - eu-west-3
+  - eu-west-2
+  - eu-west-1
+  - ap-northeast-2
+  - ap-northeast-1
+  - sa-east-1
+  - ca-central-1
+  - ap-southeast-1
+  - ap-southeast-2
+  - eu-central-1
+  - us-east-1
+  - us-east-2
+  - us-west-2
+  parameters:
+    ClusterName: override
+    ConsulReplicas: override
+    LoadBalancerType: override
+    DomainName: override
+    HostedZoneId: override
+    QSS3BucketName: $[taskcat_autobucket]
+    QSS3BucketRegion: $[taskcat_current_region]
+    QSS3KeyPrefix: quickstart-eks-hashicorp-consul/
+tests:
+  single-region:
+    regions:
+     - eu-west-1

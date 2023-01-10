@@ -42,6 +42,24 @@ tests:
       AvailabilityZones: $[taskcat_genaz_3]
     regions:
       - me-south-1
+  v1-22:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      KubernetesVersion: '1.22'
+    regions:
+      - us-east-1
+  v1-21:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      KubernetesVersion: '1.21'
+    regions:
+      - us-east-2
+  v1-20:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      KubernetesVersion: '1.20'
+    regions:
+      - us-west-2
   public-endpoint:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -85,7 +103,6 @@ tests:
       ProvisionBastionHost: Disabled
     regions:
       - cn-north-1
-      - cn-northwest-1
   govcloud:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -223,3 +240,11 @@ tests:
       RafaySysEmail: override
     regions:
       - ca-central-1
+  spot:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      NodeGroupType: Unmanaged
+      OnDemandPercentage: 0
+      OnDemandBastionPercentage: 0
+    regions:
+      - us-east-1

@@ -328,6 +328,7 @@ Resources:
           - ~~/<ConfigSetName>/bastion/BastionBootstrapScript~~
         AlternativeIAMRole: !GetAtt IamStack.Outputs.BastionRole
         BastionAMIOS: ~~/<ConfigSetName>/bastion/BastionOS~~
+        OndemandPercentage: ~~/<ConfigSetName>/bastion/OnDemandPercentage~~
         EnableTCPForwarding: ~~/<ConfigSetName>/bastion/BastionEnableTCPForwarding~~
         EnableX11Forwarding: ~~/<ConfigSetName>/bastion/BastionEnableX11Forwarding~~
         EnvironmentVariables: !Sub
