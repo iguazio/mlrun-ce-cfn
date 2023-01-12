@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Deploys an EKS cluster with MLRun CE in a new VPC
+Description: Deploys an EKS cluster with MLRun CE in n existing VPC
 Metadata:
   AutoInstance:
     NodeInstanceType:
@@ -71,8 +71,13 @@ Metadata:
       - Label:
           default: VPC network configuration
         Parameters:
-          - NumberOfAZs
-          - AvailabilityZones
+          - VPCID
+          - PrivateSubnet1ID
+          - PrivateSubnet2ID
+          - PrivateSubnet3ID
+          - PublicSubnet1ID
+          - PublicSubnet2ID
+          - PublicSubnet3ID
           - RemoteAccessCIDR
       - Label:
           default: Amazon EKS configuration
@@ -88,14 +93,26 @@ Metadata:
           - KeyPairName
           - ProvisionBastionHost
       - Label:
-          default: MLRun configuration
+          default: MLRun CE configuration
         Parameters:
           - ClusterDomain
           - REDISUrl
           - MLrunCeVersion
     ParameterLabels:
-      AvailabilityZones:
-        default: Availability Zones
+      PublicSubnet1ID:
+        default: Public subnet 1 ID
+      PublicSubnet2ID:
+        default: Public subnet 2 ID
+      PublicSubnet3ID:
+        default: Public subnet 3 ID
+      PrivateSubnet1ID:
+        default: Private subnet 1 ID
+      PrivateSubnet2ID:
+        default: Private subnet 2 ID
+      PrivateSubnet3ID:
+        default: Private subnet 3 ID
+      VPCID:
+        default: VPC ID
       KeyPairName:
         default: SSH key name
       RemoteAccessCIDR:
@@ -122,9 +139,31 @@ Metadata:
         default: MLRunCE Helm Chart version
 
 Parameters:
-  AvailabilityZones:
-    Description: List of Availability Zones to use for the subnets in the VPC. The number of selected entries should match the value entered for Number of Availability Zones parameter.
-    Type: List<AWS::EC2::AvailabilityZone::Name>
+  VPCID:
+    Type: "AWS::EC2::VPC::Id"
+    Description: ID of your existing VPC (e.g., vpc-0343606e).
+  PublicSubnet1ID:
+    Type: String
+    Description: ID of the public subnet in Availability Zone 1 of your existing VPC (e.g., subnet-a0246dcd).
+    Default: ""
+  PublicSubnet2ID:
+    Type: String
+    Description: ID of the public subnet in Availability Zone 2 of your existing VPC (e.g., subnet-b1236eea).
+    Default: ""
+  PublicSubnet3ID:
+    Type: String
+    Description: ID of the public subnet in Availability Zone 3 of your existing VPC (e.g., subnet-c3456aba).
+    Default: ""
+  PrivateSubnet1ID:
+    Type: "AWS::EC2::Subnet::Id"
+    Description: ID of the private subnet in Availability Zone 1 of your existing VPC (e.g., subnet-fe9a8b32).
+  PrivateSubnet2ID:
+    Type: "AWS::EC2::Subnet::Id"
+    Description: ID of the private subnet in Availability Zone 2 of your existing VPC (e.g., subnet-be8b01ea).
+  PrivateSubnet3ID:
+    Type: String
+    Description: ID of the private subnet in Availability Zone 3 of your existing VPC (e.g., subnet-abd39039).
+    Default: ""
   # NOTE: Don't change the type of KeyPairName parameter back to AWS::EC2::KeyPair::KeyName.
   # String type is intentional as it enables default (empty) value. By using defaults, we
   # promote AWS Systems Manager Session Manager service, which is a recommended way
@@ -155,12 +194,6 @@ Parameters:
     Default: 1
     Description: By default the system is deployed with a single node and can scale to Max Number of Nodes.
     Type: Number
-  NumberOfAZs:
-    Type: String
-    AllowedValues: ["2", "3"]
-    Default: "3"
-    Description: Number of Availability Zones to use in the VPC. A Minimum of 2
-      Availability Zones are required for this deployment.
   ProvisionBastionHost:
     Type: String
     AllowedValues: [ "Enabled", "Disabled" ]
@@ -209,39 +242,46 @@ Resources:
         ConfigSetName: !Ref AWS::StackName
         KubernetesVersion: !FindInMap [ Config, KubernetesVersion, Value ]
         NodeVolumeSize: 120
-  EKSNewVPC:
+  EKSStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: AdvancedConfigDefaultsStack
+    Metadata:
+      cfn-lint: { config: { ignore_checks: [ W9901, E9902 ] } }
     Properties:
       TemplateURL: !Sub
-        - 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks-entrypoint-new-vpc.template.yaml'
+        - 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks.template.yaml'
         - QSS3BucketName: !FindInMap [ Config, QSS3BucketName, Value ]
           QSS3BucketRegion: !FindInMap [ Config, QSS3BucketRegion, Value ]
           QSS3KeyPrefix: !FindInMap [ Config, QSS3KeyPrefix, Value ]
       Parameters:
-        ConfigSetName: !Ref AWS::StackName
-        AvailabilityZones: !Join [ ',', !Ref 'AvailabilityZones' ]
+        PublicSubnet1ID: !Ref PublicSubnet1ID
+        PublicSubnet2ID: !Ref PublicSubnet2ID
+        PublicSubnet3ID: !Ref PublicSubnet3ID
         KeyPairName: !Ref KeyPairName
         QSS3BucketName: !FindInMap [ Config, QSS3BucketName, Value ]
-        QSS3BucketRegion: !FindInMap [ Config, QSS3BucketRegion, Value ]
         QSS3KeyPrefix: !FindInMap [ Config, QSS3KeyPrefix, Value ]
-        RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        EKSPublicAccessEndpoint: !FindInMap [Config, EKSPublicAccessEndpoint, Value]
-        AdditionalEKSAdminUserArn: !Ref AdditionalEKSAdminUserArn
-        NodeInstanceType: !Ref NodeInstanceType
+        QSS3BucketRegion: !FindInMap [ Config, QSS3BucketRegion, Value ]
+        PrivateSubnet1ID: !Ref PrivateSubnet1ID
+        PrivateSubnet2ID: !Ref PrivateSubnet2ID
+        PrivateSubnet3ID: !Ref PrivateSubnet3ID
         NumberOfNodes: 1
         MaxNumberOfNodes: !Ref MaxNumberOfNodes
-        NumberOfAZs: !Ref NumberOfAZs
-        ProvisionBastionHost: !Ref ProvisionBastionHost
-        ALBIngressController: !FindInMap [Config, ALBIngressController, Value]
-        EKSClusterName: !Ref EKSClusterName
-        NodeInstanceFamily: Standard
-        NodeGroupType: !FindInMap [ Config, NodeGroupType, Value ]
-        ClusterAutoScaler: Enabled
+        NodeInstanceType: !Ref NodeInstanceType
+        RemoteAccessCIDR: !Ref RemoteAccessCIDR
+        AdditionalEKSAdminUserArn: !Ref AdditionalEKSAdminUserArn
+        VPCID: !Ref VPCID
+        ProvisionClusterAutoScaler: Enabled
         EfsStorageClass: Enabled
+        ProvisionBastionHost: !Ref ProvisionBastionHost
+        EKSPublicAccessEndpoint: !FindInMap [Config, EKSPublicAccessEndpoint, Value]
+        ProvisionALBIngressController: !FindInMap [Config, ALBIngressController, Value]
+        EKSClusterName: !Ref EKSClusterName
+        ConfigSetName: !Ref AWS::StackName
+        NodeGroupType: Managed
+        NodeInstanceFamily: Standard
   MLRunKit:
     Type: AWS::CloudFormation::Stack
-    DependsOn: EKSNewVPC
+    DependsOn: EKSStack
     Properties:
       TemplateURL: !Sub
         - 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/mlrun-kit.template.yaml'
@@ -254,13 +294,13 @@ Resources:
         MLrunCeVersion: !Ref MLrunCeVersion
         REDISUrl: !Ref REDISUrl
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        OIDCProvider: !Join [ '', !Split [ 'https://', !GetAtt EKSNewVPC.Outputs.OIDCIssuerURL ] ]
+        OIDCProvider: !Join [ '', !Split [ 'https://', !GetAtt EKSStack.Outputs.OIDCIssuerURL ] ]
 Outputs:
   BastionIP:
-    Value: !GetAtt EKSNewVPC.Outputs.BastionIP
+    Value: !GetAtt EKSStack.Outputs.BastionIP
   EKSClusterName:
     Description: "This is the name of your EKS cluster"
-    Value: !GetAtt EKSNewVPC.Outputs.EKSClusterName
+    Value: !GetAtt EKSStack.Outputs.EKSClusterName
   KubeConfig:
     Description: "Run this command in your terminal to get access to your EKS cluster"
     Value: !Sub aws eks update-kubeconfig --name=${EKSClusterName}
