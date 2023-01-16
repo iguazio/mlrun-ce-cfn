@@ -193,7 +193,7 @@ Mappings:
     ALBIngressController: { Value: Enabled }
     NodeGroupType: { Value: Managed }
     KubernetesVersion: { Value: 1.22 }
-    QSS3BucketName: { Value: mlrun-kit-alexp }
+    QSS3BucketName: { Value: mlrun-ce-cfn }
 
 Resources:
   AdvancedConfigDefaultsStack:
