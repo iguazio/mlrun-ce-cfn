@@ -192,7 +192,7 @@ Mappings:
     EKSPublicAccessEndpoint: { Value: Enabled }
     ALBIngressController: { Value: Enabled }
     NodeGroupType: { Value: Managed }
-    KubernetesVersion: { Value: 1.22 }
+    KubernetesVersion: { Value: 1.23 }
     QSS3BucketName: { Value: mlrun-ce-cfn }
 
 Resources:
