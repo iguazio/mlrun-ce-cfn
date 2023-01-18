@@ -136,7 +136,7 @@ Metadata:
       REDISUrl:
         default: The URL of your REDIS database
       MLrunCeVersion:
-        default: MLRunCE Helm Chart version
+        default: MLRun CE Helm Chart version
 
 Parameters:
   VPCID:
