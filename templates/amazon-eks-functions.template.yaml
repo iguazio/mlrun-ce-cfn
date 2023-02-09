@@ -102,7 +102,6 @@ Resources:
         Fn::Join:
           - '-'
           - - 'awsqs-kubernetes-resource-proxy'
-            - !Ref EKSClusterName
             - Fn::Select:
                 - 4
                 - Fn::Split:
@@ -137,7 +136,6 @@ Resources:
         Fn::Join:
           - '-'
           - - 'EKS-QuickStart-KubeManifest'
-            - !Ref EKSClusterName
             - Fn::Select:
                 - 4
                 - Fn::Split:
@@ -173,7 +171,6 @@ Resources:
         Fn::Join:
           - '-'
           - - 'EKS-QuickStart-KubeGet'
-            - !Ref EKSClusterName
             - Fn::Select:
                 - 4
                 - Fn::Split:
