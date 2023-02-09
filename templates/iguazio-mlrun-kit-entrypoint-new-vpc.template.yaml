@@ -182,6 +182,7 @@ Parameters:
     Type: String
     Default: ""
   REDISUrl:
+    Description: The URL of the REDIS DB
     Type: String
     Default: redis-replace-me.com
 
