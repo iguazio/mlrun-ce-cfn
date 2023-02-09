@@ -22,9 +22,10 @@ Parameters:
   EKSClusterName:
     Type: String
   ClusterDomain:
-    Description: Cluster DNS name will be created in this domain
+    Description: "The EKS cluster DNS record will be added to this domain."
     Default: replace-me.com
     Type: String
+    MinLength: 1
   REDISUrl:
     Description: The URL of the REDIS DB
     Default: redis-replace-me.com
@@ -32,7 +33,9 @@ Parameters:
   OIDCProvider:
     Type: String
   MLrunCeVersion:
+    Description: (Optional) Override default (latest) Chart version
     Type: String
+    Default: 1
   RemoteAccessCIDR:
     Default: "0.0.0.0/0"
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
