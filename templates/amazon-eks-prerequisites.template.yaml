@@ -50,11 +50,11 @@ Resources:
                 - 'ec2:DescribeRegions'
                 Resource: '*'
               - Effect: Deny
-                  Action: '*'
-                  Resource: '*'
-                  Condition:
-                    StringEquals:
-                      'aws:RequestedRegion': 'ap-south-1'
+                Action: '*'
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': 'ap-south-1'
   PreReqsFunction:
     Type: AWS::Lambda::Function
     Properties:
