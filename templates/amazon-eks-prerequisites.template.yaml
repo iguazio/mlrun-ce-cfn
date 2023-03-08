@@ -92,8 +92,12 @@ Resources:
           def get_stacks(key, val, region=None):
               cfn = BC(CFN, region_name=region, config=C)
               stacks = []
-              for p in cfn.get_paginator('describe_stacks').paginate():
-                  stacks += p['Stacks']
+              try:
+                  for p in cfn.get_paginator('describe_stacks').paginate():
+                      stacks += p['Stacks']
+              except botocore.exceptions.ClientError as e:
+                  print(f"You don't have permission to call 'describe_stacks' for region: {region}")
+                  return None
               s = [s for s in stacks if {'Key': key, 'Value': val} in s['Tags']]
               if not len(s):
                   return None
