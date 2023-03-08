@@ -69,6 +69,7 @@ Resources:
           import boto3
           import traceback
           import json
+          import botocore.exceptions
           from botocore.config import Config
           from uuid import uuid4
           from random import randint
@@ -96,8 +97,11 @@ Resources:
                   for p in cfn.get_paginator('describe_stacks').paginate():
                       stacks += p['Stacks']
               except botocore.exceptions.ClientError as e:
-                  print(f"You don't have permission to call 'describe_stacks' for region: {region}")
-                  return None
+                  if e.response['Error']['Code'] == 'AccessDenied':
+                      print(f"You don't have permission to call 'describe_stacks' for region: {region}")
+                      return None
+                  else:
+                      raise
               s = [s for s in stacks if {'Key': key, 'Value': val} in s['Tags']]
               if not len(s):
                   return None
