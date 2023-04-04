@@ -387,7 +387,7 @@ Resources:
               - name: MLRUN_HTTPDB__REAL_PATH
                 value: s3://
               - name: MLRUN_ARTIFACT_PATH
-                value: s3://${MlrunBucket}/
+                value: s3://${MlrunBucket}/projects/{{run.project}}/artifacts/
               - name: MLRUN_SPARK_APP_IMAGE
                 value: gcr.io/iguazio/spark-app
               - name: MLRUN_SPARK_APP_IMAGE_TAG
