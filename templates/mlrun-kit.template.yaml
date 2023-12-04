@@ -408,12 +408,15 @@ Resources:
 
         jupyterNotebook:
           awsInstall: true
-          serviceAccount: mlrun-jobs-sa
+          serviceAccount:
+            create: false
+            name: mlrun-jobs-sa
           mlrunUIURL:  https://mlrun.${EKSClusterName}.${ClusterDomain}
           persistence:
             enabled: true
             annotations: ~
             storageClass: aws-efs
+          envFrom: ~
           extraEnv:
               - name: S3_NON_ANONYMOUS
                 value: "true"
