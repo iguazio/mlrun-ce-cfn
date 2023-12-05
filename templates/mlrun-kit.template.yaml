@@ -349,7 +349,7 @@ Resources:
           dashboard:
             containerBuilderKind: kaniko
             imageNamePrefixTemplate: "${EKSClusterName}-{{ .ProjectName }}-{{ .FunctionName }}-"
-        mlrun:              
+        mlrun:
           serviceAccounts:
             api:
               create: false
