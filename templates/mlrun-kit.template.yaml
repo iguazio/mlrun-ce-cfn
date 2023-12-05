@@ -338,6 +338,9 @@ Resources:
       Repository: https://mlrun.github.io/ce
       ValueYaml: !Sub |
         global:
+          nuclio:
+            dashboard:
+              nodePort: ""
           registry:
             url: "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com"
         nuclio:
