@@ -349,7 +349,7 @@ Resources:
           dashboard:
             containerBuilderKind: kaniko
             imageNamePrefixTemplate: "${EKSClusterName}-{{ .ProjectName }}-{{ .FunctionName }}-"
-        mlrun:
+        mlrun:              
           serviceAccounts:
             api:
               create: false
@@ -357,7 +357,14 @@ Resources:
           nuclio:
             uiURL:  "https://nuclio.${EKSClusterName}.${ClusterDomain}"
           storage: filesystem
+          ui:
+            service:
+              type: ClusterIP
+              nodePort: ""          
           api:
+            service:
+              type: ClusterIP
+              nodePort: ""
             fullnameOverride: mlrun-api
             persistence:
               enabled: true
@@ -408,6 +415,10 @@ Resources:
 
         jupyterNotebook:
           awsInstall: true
+          service:
+            type: ClusterIP
+            nodePort: ""
+            port: 8888          
           serviceAccount:
             create: false
             name: mlrun-jobs-sa
@@ -434,6 +445,14 @@ Resources:
                 value: "true"
 
         minio:
+          service:
+            type: ClusterIP
+            port: 9000
+            nodePort: ""
+          consoleService:
+            type: ClusterIP
+            port: 9001
+            nodePort: ""        
           enabled: true
           rootUser: minio
           rootPassword: minio123
@@ -455,6 +474,9 @@ Resources:
              enable: true
 
         pipelines:
+          service:
+            type : ClusterIP
+            nodePort: ""        
           enabled: true
           name: pipelines
           persistence:
